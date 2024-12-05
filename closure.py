@@ -3,9 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
-from datetime import datetime, timedelta
-import json
-import time
+from datetime import datetime
 
 # Konfiguracja strony Streamlit
 st.set_page_config(page_title="Trading Bot Panel", layout="wide")
@@ -108,7 +106,7 @@ with col2:
     st.dataframe(pd.DataFrame(orders_data))
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Analiza Techniczna", "Analiza Ryzyka", "Statystyki"])
+tab1, tab2, tab3, tab4 = st.tabs(["Analiza Techniczna", "Analiza Ryzyka", "Statystyki", "Dane Historyczne i Prognoza AI"])
 
 with tab1:
     col1, col2 = st.columns(2)
@@ -196,5 +194,6 @@ with tab4:
     }
     for date, predicted_price in forecast.items():
         st.write(f"{date}: {predicted_price}")
+
         
 # streamlit run closure.py
