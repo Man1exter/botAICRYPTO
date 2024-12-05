@@ -1,184 +1,151 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import plotly.graph_objects as go
-import asyncio
+import tensorflow as tf
 from binance.client import Client
-from datetime import datetime, timedelta
-import time
+import ta
+from sklearn.preprocessing import MinMaxScaler
 
-# Ustawienia API Binance (wstaw swoje klucze)
-api_key = 'twoj_api_key'
-api_secret = 'twoj_api_secret'
+# Inicjalizacja klienta Binance API
+api_key = 'your_api_key'  # Podaj swój klucz API
+api_secret = 'your_api_secret'  # Podaj swój sekret API
+client = Client(api_key, api_secret)
 
-# Funkcja asynchroniczna do inicjalizacji klienta Binance
-async def initialize_binance_client():
-    client = Client(api_key, api_secret)
-    return client
-
-# Funkcja do pobierania danych z Binance (świece)
-def get_binance_data(symbol, interval, limit=200):
-    """Pobieranie danych historycznych z Binance"""
-    client = asyncio.run(initialize_binance_client())  # Inicjalizacja klienta Binance
-    klines = client.get_historical_klines(symbol, interval, limit=limit)
+# Pobieranie danych OHLCV z Binance
+def get_binance_data(symbol, interval, start_str):
+    klines = client.get_historical_klines(symbol, interval, start_str)
     
-    # Konwersja danych do DataFrame
+    # Zamiana na DataFrame
     data = pd.DataFrame(klines, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time', 'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume', 'taker_buy_quote_asset_volume', 'ignore'])
     data['timestamp'] = pd.to_datetime(data['timestamp'], unit='ms')
-    data['open'] = pd.to_numeric(data['open'])
-    data['high'] = pd.to_numeric(data['high'])
-    data['low'] = pd.to_numeric(data['low'])
     data['close'] = pd.to_numeric(data['close'])
-    data['volume'] = pd.to_numeric(data['volume'])
-    data.set_index('timestamp', inplace=True)
-    return data
+    
+    return data[['timestamp', 'close']]
 
-# Funkcja do dodania wskaźników technicznych (RSI, SMA)
-def add_technical_indicators(df):
-    """Dodanie wskaźników technicznych do DataFrame"""
-    # Obliczanie RSI (Relative Strength Index)
-    delta = df['close'].diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    
-    avg_gain = gain.rolling(window=14, min_periods=1).mean()
-    avg_loss = loss.rolling(window=14, min_periods=1).mean()
-    rs = avg_gain / avg_loss
-    df['RSI'] = 100 - (100 / (1 + rs))
-    
-    # Obliczanie SMA (Simple Moving Average)
-    df['SMA_50'] = df['close'].rolling(window=50).mean()
-    df['SMA_200'] = df['close'].rolling(window=200).mean()
-    
-    return df
+# Przygotowanie danych do modelu AI
+scaler = MinMaxScaler(feature_range=(0, 1))
 
-# Funkcja do generowania sygnałów handlowych (buy/sell)
-def generate_signals(df):
-    """Generowanie sygnałów kupna/sprzedaży na podstawie RSI i SMA"""
-    buy_signal = []
-    sell_signal = []
+def prepare_data(data, look_back=60):
+    data_scaled = scaler.fit_transform(data[['close']].values)
+    X, y = [], []
     
-    for i in range(len(df)):
-        if df['RSI'][i] < 30 and df['close'][i] > df['SMA_50'][i]:
-            buy_signal.append(df['close'][i])  # Kupno, gdy RSI < 30 i cena powyżej SMA 50
-            sell_signal.append(np.nan)
-        elif df['RSI'][i] > 70 and df['close'][i] < df['SMA_50'][i]:
-            sell_signal.append(df['close'][i])  # Sprzedaż, gdy RSI > 70 i cena poniżej SMA 50
-            buy_signal.append(np.nan)
-        else:
-            buy_signal.append(np.nan)
-            sell_signal.append(np.nan)
+    for i in range(look_back, len(data)):
+        X.append(data_scaled[i-look_back:i, 0])
+        y.append(data_scaled[i, 0])
     
-    df['Buy_Signal'] = buy_signal
-    df['Sell_Signal'] = sell_signal
-    return df
+    X, y = np.array(X), np.array(y)
+    X = np.reshape(X, (X.shape[0], X.shape[1], 1))
+    
+    return X, y
 
-# Funkcja do rysowania wykresu świecowego z sygnałami
-def plot_candlestick_with_signals(df, symbol, interval):
-    """Rysowanie wykresu świecowego z punktami wejścia/wyjścia"""
-    fig = go.Figure(data=[go.Candlestick(
-        x=df.index,
-        open=df['open'],
-        high=df['high'],
-        low=df['low'],
-        close=df['close'],
-        name="Candlesticks"
-    )])
+# Model LSTM do przewidywania ceny
+def build_model(input_shape):
+    model = tf.keras.Sequential()
+    model.add(tf.keras.layers.LSTM(units=50, return_sequences=True, input_shape=input_shape))
+    model.add(tf.keras.layers.LSTM(units=50))
+    model.add(tf.keras.layers.Dense(units=1))  # Prognoza ceny
     
-    # Dodanie sygnałów kupna i sprzedaży
-    fig.add_trace(go.Scatter(
-        x=df.index, 
-        y=df['Buy_Signal'], 
-        mode='markers', 
-        marker=dict(symbol='triangle-up', color='green', size=10),
-        name="Buy Signal"
-    ))
-    
-    fig.add_trace(go.Scatter(
-        x=df.index, 
-        y=df['Sell_Signal'], 
-        mode='markers', 
-        marker=dict(symbol='triangle-down', color='red', size=10),
-        name="Sell Signal"
-    ))
-    
-    # Dodanie SMA do wykresu
-    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_50'], line=dict(color='blue', width=2), name="SMA 50"))
-    fig.add_trace(go.Scatter(x=df.index, y=df['SMA_200'], line=dict(color='orange', width=2), name="SMA 200"))
-    
-    # Ustawienia wykresu
-    fig.update_layout(
-        title=f'{symbol} - Wykres świecowy ({interval})',
-        xaxis_title='Czas',
-        yaxis_title='Cena',
-        xaxis_rangeslider_visible=False
-    )
-    
-    return fig
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    return model
 
-# Streamlit App UI
-st.title("Bot Handlowy AI - Wykres i Analiza")
+# Prosta strategia handlowa
+def trading_strategy(row):
+    if row['RSI'] < 30 and row['MACD'] > 0:  # Przykładowe warunki na zakup
+        return 'buy'
+    elif row['RSI'] > 70 and row['MACD'] < 0:  # Warunki na sprzedaż
+        return 'sell'
+    else:
+        return 'hold'
+
+# Tworzenie panelu użytkownika w Streamlit
+st.set_page_config(page_title="AI Trading Dashboard", page_icon=":chart_with_upwards_trend:", layout="wide")
+
+# Ciemny motyw dla całej aplikacji
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #2E2E2E;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .stSlider>div>div>div {
+        background-color: #555555;
+    }
+    .stTextInput>div>div>input {
+        background-color: #555555;
+        color: white;
+    }
+    .stTextArea>div>div>textarea {
+        background-color: #555555;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True
+)
+
+# Nagłówek
+st.title("AI Trading Dashboard")
+
+# Użytkownik wybiera saldo początkowe
+initial_balance = st.number_input("Podaj początkowy stan konta:", min_value=1.0, value=1000.0, step=0.01)
+st.write(f"Twoje saldo: ${initial_balance}")
 
 # Wybór pary walutowej i interwału
-symbol = st.selectbox("Wybierz parę walutową", ["BTCUSDT", "ETHUSDT", "XRPUSDT", "ADAUSDT"])
-interval = st.selectbox("Wybierz interwał", ["1m", "5m", "15m", "1h", "1d", "1w", "1M"])
+symbol = st.selectbox("Wybierz parę walutową", ["BTC/USDT", "ETH/USDT", "BNB/USDT"])
+interval = st.selectbox("Wybierz interwał czasowy", ["1h", "1d", "5m", "15m"])
 
-# Pobieranie danych rynkowych
-st.write("Pobieranie danych...")
-data = get_binance_data(symbol, interval, limit=200)
+# Pobranie danych historycznych
+data = get_binance_data(symbol, interval, "30 days ago UTC")
 
-# Dodanie wskaźników technicznych
-data = add_technical_indicators(data)
+# Obliczanie wskaźników technicznych
+data['SMA'] = ta.trend.sma_indicator(data['close'], window=14)
+data['RSI'] = ta.momentum.rsi(data['close'], window=14)
+data['MACD'] = ta.trend.macd(data['close'])
 
-# Generowanie sygnałów kupna i sprzedaży
-data = generate_signals(data)
+# Tworzenie sygnałów handlowych
+data['signal'] = data.apply(trading_strategy, axis=1)
 
-# Rysowanie wykresu z sygnałami
-st.write("Wykres świecowy z sygnałami:")
-fig = plot_candlestick_with_signals(data, symbol, interval)
-st.plotly_chart(fig)
+# Wizualizacja wykresu ceny
+st.subheader("Wykres cenowy")
+st.line_chart(data[['timestamp', 'close']].set_index('timestamp'))
 
-# Wyświetlanie ostatnich sygnałów
-buy_signals = data[data['Buy_Signal'].notna()]
-sell_signals = data[data['Sell_Signal'].notna()]
+# Przygotowanie danych do modelu AI
+X, y = prepare_data(data)
 
-st.write(f"Ostatni sygnał kupna: {buy_signals.tail(1)}")
-st.write(f"Ostatni sygnał sprzedaży: {sell_signals.tail(1)}")
+# Budowanie i trenowanie modelu
+model = build_model((X.shape[1], 1))
+model.fit(X, y, epochs=10, batch_size=32)
 
-# Komentarze i rekomendacje
-if len(buy_signals) > 0:
-    st.write("Akcja: Kup!")
-elif len(sell_signals) > 0:
-    st.write("Akcja: Sprzedaj!")
-else:
-    st.write("Akcja: Trzymaj!")
+# Prognoza ceny
+predicted_price = model.predict(X)
+predicted_price = scaler.inverse_transform(predicted_price)
+st.subheader("Prognoza ceny")
+st.write(f"Przewidywana cena dla następnego punktu: ${predicted_price[-1][0]:.2f}")
 
-# Pokazanie wartości RSI i SMA
-st.write(f"RSI: {data['RSI'].iloc[-1]}")
-st.write(f"SMA 50: {data['SMA_50'].iloc[-1]}")
-st.write(f"SMA 200: {data['SMA_200'].iloc[-1]}")
+# Wyświetlanie sygnałów i wskaźników
+st.subheader("Sygnały handlowe")
+st.write(data[['timestamp', 'close', 'RSI', 'MACD', 'signal']].tail())
 
-# Uruchomienie bota (symulacja)
-if st.button("Uruchom bota"):
-    st.write("Bot rozpoczął działanie...")
-    while True:
-        data = get_binance_data(symbol, interval, limit=200)
-        data = add_technical_indicators(data)
-        data = generate_signals(data)
-        
-        buy_signals = data[data['Buy_Signal'].notna()]
-        sell_signals = data[data['Sell_Signal'].notna()]
-        
-        if len(buy_signals) > 0:
-            st.write("Akcja: Kup!")
-        elif len(sell_signals) > 0:
-            st.write("Akcja: Sprzedaj!")
-        else:
-            st.write("Akcja: Trzymaj!")
-        
-        # Czekaj 60 sekund przed kolejną aktualizacją
-        time.sleep(60)
+# Testowanie wyników strategii (prosty backtest)
+st.write("Testowanie wyników strategii (prosty backtest):")
 
+# Przykładowy prosty backtest - sumowanie wyników
+balance = initial_balance
+for index, row in data.iterrows():
+    if row['signal'] == 'buy' and balance > 0:
+        buy_price = row['close']
+        balance -= buy_price  # kupujemy po cenie zamknięcia
+        st.write(f"Kupiono za {buy_price} na {row['timestamp']}")
+    elif row['signal'] == 'sell' and balance < initial_balance:
+        sell_price = row['close']
+        balance += sell_price  # sprzedajemy po cenie zamknięcia
+        st.write(f"Sprzedano za {sell_price} na {row['timestamp']}")
 
-#### streamlit run panel.py
+st.write(f"Końcowy stan konta po strategii: ${balance:.2f}")
+
+#### import logging -- streamlit run panel.py
 
