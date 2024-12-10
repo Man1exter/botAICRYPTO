@@ -14,6 +14,20 @@ if 'bot_active' not in st.session_state:
 if 'last_update' not in st.session_state:
     st.session_state.last_update = datetime.now()
 
+# Funkcja do pobrania danych historycznych
+def get_historical_data(trading_pair):
+    """Generuje dane historyczne dla podanej pary tradingowej."""
+    np.random.seed(42)  # Zapewnienie reprodukowalności
+    data = pd.DataFrame({
+        'date': pd.date_range(start='2024-01-01', end='2024-12-31', freq='D'),
+        'open': np.random.normal(100, 10, 366),
+        'high': np.random.normal(105, 10, 366),
+        'low': np.random.normal(95, 10, 366),
+        'close': np.random.normal(100, 10, 366),
+        'volume': np.random.randint(1000, 10000, 366)
+    })
+    return data
+
 # Sidebar
 with st.sidebar:
     st.title("Panel Kontrolny")
@@ -63,22 +77,43 @@ with col4:
 
 # Wykres
 st.header("Wykres i Analiza")
-# Przykładowe dane
-dates = pd.date_range(start='2024-01-01', end='2024-12-31', freq='D')
-prices = np.random.normal(100, 10, len(dates)).cumsum()
-volumes = np.random.randint(1000, 10000, len(dates))
 
-# Tworzenie wykresu
+# Pobierz dane historyczne dla wybranej pary
+historical_data = get_historical_data(trading_pair)
+
+# Oblicz ATL i ATH
+atl = historical_data['low'].min()
+ath = historical_data['high'].max()
+
+# Narysuj wykres candlestickowy
 fig = make_subplots(rows=2, cols=1, shared_xaxes=True, 
                     vertical_spacing=0.03, row_heights=[0.7, 0.3])
+fig.add_trace(go.Candlestick(
+    x=historical_data['date'],
+    open=historical_data['open'],
+    high=historical_data['high'],
+    low=historical_data['low'], 
+    close=historical_data['close'],
+    name='Candlestick'
+), row=1, col=1)
 
-# Candlestick
-fig.add_trace(go.Scatter(x=dates, y=prices, name="Price"), row=1, col=1)
+# Dodaj linie ATL i ATH
+fig.add_shape(
+    type="line",
+    x0=historical_data['date'].iloc[0], x1=historical_data['date'].iloc[-1],
+    y0=atl, y1=atl,
+    line=dict(color="green", width=2, dash="dot"),
+    row=1, col=1
+)
+fig.add_shape(
+    type="line",
+    x0=historical_data['date'].iloc[0], x1=historical_data['date'].iloc[-1],
+    y0=ath, y1=ath,
+    line=dict(color="red", width=2, dash="dot"),
+    row=1, col=1
+)
 
-# Volume
-fig.add_trace(go.Bar(x=dates, y=volumes, name="Volume"), row=2, col=1)
-
-fig.update_layout(height=600, title_text=f"{trading_pair}")
+fig.update_layout(height=600, title_text=f"Wykres dla {trading_pair}")
 st.plotly_chart(fig, use_container_width=True)
 
 # Pozycje i Orders
@@ -131,7 +166,6 @@ with tab1:
         }
         for signal, value in signals.items():
             st.metric(signal, value)
-    
 
 with tab2:
     st.subheader("Metryki Ryzyka")
@@ -169,22 +203,13 @@ with tab3:
         }
         for metric, value in performance.items():
             st.metric(metric, value)
-            
+
 with tab4:
     st.subheader("Dane Historyczne i Prognoza AI")
-
-    # Sekcja danych historycznych
     st.markdown("### Dane Historyczne Ceny")
-    historical_data = {
-        '01-12-2024': '$120.34',
-        '02-12-2024': '$121.45',
-        '03-12-2024': '$119.67',
-        '04-12-2024': '$122.34',
-    }
-    for date, price in historical_data.items():
-        st.write(f"{date}: {price}")
+    for date, price in zip(historical_data['date'], historical_data['close']):
+        st.write(f"{date.strftime('%d-%m-%Y')}: {price:.2f}")
 
-    # Sekcja prognozy AI
     st.markdown("### Prognoza AI")
     forecast = {
         '05-12-2024': '$123.45',
@@ -195,5 +220,5 @@ with tab4:
     for date, predicted_price in forecast.items():
         st.write(f"{date}: {predicted_price}")
 
-        
+    
 # streamlit run closure.py
