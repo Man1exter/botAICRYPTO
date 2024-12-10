@@ -4,6 +4,11 @@ import numpy as np
 import ccxt  # Do komunikacji z Binance
 from datetime import datetime
 from streamlit.components.v1 import html
+from cryptography.hazmat.primitives import hashes
+
+digest = hashes.Hash(hashes.SHA256())
+digest.update(b"Test message")
+print(digest.finalize())
 
 # Konfiguracja strony Streamlit
 st.set_page_config(page_title="Trading Bot Panel", layout="wide")
