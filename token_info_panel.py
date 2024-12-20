@@ -8,9 +8,19 @@ def fetch_xrp_data():
     try:
         # Wysłanie zapytania do CoinGecko API
         response = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_vol=true"
+            "https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_vol=true",
+            timeout=10  # Limit czasu na odpowiedź
         )
+
+        # Sprawdzanie, czy odpowiedź jest poprawna
+        if response.status_code != 200:
+            raise ValueError(f"Błąd API: {response.status_code} {response.reason}")
+
         data = response.json()
+
+        # Walidacja danych w odpowiedzi
+        if "ripple" not in data or "usd" not in data["ripple"] or "usd_24h_vol" not in data["ripple"]:
+            raise ValueError("Niekompletna odpowiedź z API")
 
         # Pobieranie danych
         price = data["ripple"]["usd"]
@@ -21,8 +31,14 @@ def fetch_xrp_data():
         volume_label.config(text=f"Wolumen 24h: ${volume:,.2f}")
         update_date_label()
 
+    except requests.exceptions.Timeout:
+        messagebox.showerror("Błąd", "Przekroczono czas oczekiwania na odpowiedź z API.")
+    except requests.exceptions.RequestException as e:
+        messagebox.showerror("Błąd", f"Problem z połączeniem: {str(e)}")
+    except ValueError as e:
+        messagebox.showerror("Błąd", f"Błąd w danych: {str(e)}")
     except Exception as e:
-        messagebox.showerror("Błąd", f"Nie udało się pobrać danych: {str(e)}")
+        messagebox.showerror("Błąd", f"Nieoczekiwany błąd: {str(e)}")
 
 # Funkcja do aktualizacji daty i godziny
 def update_date_label():
@@ -93,4 +109,5 @@ fetch_xrp_data()
 
 # Uruchomienie aplikacji
 root.mainloop()
+
 
