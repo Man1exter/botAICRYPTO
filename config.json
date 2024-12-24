@@ -1,0 +1,7 @@
+{
+    "top_10_tokens": ["BTC", "ETH", "BNB", "USDT", "ADA", "SOL", "XRP", "DOT", "DOGE", "USDC"],
+    "timeframes": ["1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D"],
+    "file_formats": ["png", "png", "png", "png", "png", "png", "png", "png", "png", "png"],
+    "interval_minutes": 60,
+    "retries": 3
+}
