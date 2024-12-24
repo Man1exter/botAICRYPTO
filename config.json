@@ -3,5 +3,41 @@
     "timeframes": ["1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D", "1D"],
     "file_formats": ["png", "png", "png", "png", "png", "png", "png", "png", "png", "png"],
     "interval_minutes": 60,
-    "retries": 3
+    "retries": 3,
+    "api_urls": [
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart",
+        "https://api.tradingview.com/chart"
+    ],
+    "output_dirs": [
+        "./charts/BTC",
+        "./charts/ETH",
+        "./charts/BNB",
+        "./charts/USDT",
+        "./charts/ADA",
+        "./charts/SOL",
+        "./charts/XRP",
+        "./charts/DOT",
+        "./charts/DOGE",
+        "./charts/USDC"
+    ],
+    "notification_methods": [
+        "log",
+        "log",
+        "log",
+        "log",
+        "log",
+        "log",
+        "log",
+        "log",
+        "log",
+        "log"
+    ]
 }
