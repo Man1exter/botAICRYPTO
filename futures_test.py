@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QFont
 from PySide6.QtCore import Qt, QTimer
 import ccxt
+import requests
 
 
 class HoverButton(QPushButton):
@@ -26,18 +27,21 @@ class HoverButton(QPushButton):
             QPushButton {
                 background-color: #45a049; 
                 color: #ffffff; 
-                padding: 10px; 
+                padding: 10px;
                 border: none; 
                 border-radius: 5px;
             }
         """
         self.setStyleSheet(self.default_style)
+        self.setMouseTracking(True)
 
     def enterEvent(self, event):
         self.setStyleSheet(self.hover_style)
+        super().enterEvent(event)
 
     def leaveEvent(self, event):
         self.setStyleSheet(self.default_style)
+        super().leaveEvent(event)
 
 
 class CryptoBotUI(QMainWindow):
@@ -186,7 +190,7 @@ class CryptoBotUI(QMainWindow):
 
         for level in fib_levels:
             self.graph_widget.plot(
-                [0, len(prices) - 1], [level, level], pen=pg.mkPen('b', width=1, style=pg.mkPen.DashLine)
+                [0, len(prices) - 1], [level, level], pen=pg.mkPen('b', width=1, style=pg.QtCore.Qt.DashLine)
             )
 
     def refresh_chart(self):
@@ -194,6 +198,44 @@ class CryptoBotUI(QMainWindow):
         self.current_pair = self.pair_combo.currentText()
         self.current_timeframe = self.timeframe_combo.currentText()
         print(f"Fetching data for pair {self.current_pair} with timeframe {self.current_timeframe}")
+        # Add logic to fetch and update chart data here
+        self.update_chart_data()
+
+    def update_chart_data(self):
+        """Fetch and update chart data."""
+        try:
+            # Example API endpoint (replace with a real API endpoint)
+            api_url = f"https://api.example.com/data?pair={self.current_pair}&timeframe={self.current_timeframe}"
+            response = requests.get(api_url)
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract prices from the data (adjust according to the API response structure)
+            prices = [item['price'] for item in data['prices']]
+
+            # Update the chart with the new data
+            self.graph_widget.clear()
+            self.graph_widget.plot(prices, pen=pg.mkPen('g', width=2))
+
+            # Calculate and plot Fibonacci levels
+            max_price = max(prices)
+            min_price = min(prices)
+            fib_levels = [
+                max_price - 0.236 * (max_price - min_price),
+                max_price - 0.382 * (max_price - min_price),
+                max_price - 0.5 * (max_price - min_price),
+                max_price - 0.618 * (max_price - min_price)
+            ]
+
+            for level in fib_levels:
+                self.graph_widget.plot(
+                    [0, len(prices) - 1], [level, level], pen=pg.mkPen('b', width=1, style=pg.QtCore.Qt.DashLine)
+                )
+
+        except requests.RequestException as e:
+            print(f"Error fetching data: {e}")
+        except KeyError as e:
+            print(f"Error processing data: Missing key {e}")
 
 
 # Run the App
@@ -202,7 +244,3 @@ if __name__ == "__main__":
     window = CryptoBotUI()
     window.show()
     sys.exit(app.exec())
-
-
-
-
