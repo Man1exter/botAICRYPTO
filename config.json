@@ -39,5 +39,19 @@
         "log",
         "log",
         "log"
-    ]
+    ],
+    "email_settings": {
+        "smtp_server": "smtp.example.com",
+        "smtp_port": 587,
+        "smtp_user": "your_email@example.com",
+        "smtp_password": "your_password",
+        "from_email": "your_email@example.com",
+        "to_email": "recipient_email@example.com"
+    },
+    "sms_settings": {
+        "api_url": "https://api.smsprovider.com/send",
+        "to_phone": "+1234567890",
+        "api_key": "your_sms_api_key"
+    },
+    "logging_level": "INFO"
 }
