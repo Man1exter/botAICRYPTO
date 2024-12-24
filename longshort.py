@@ -65,11 +65,26 @@ class Top10CryptoWindow(QMainWindow):
 
             # Aktualizacja tabeli
             self.crypto_table.setRowCount(len(simulated_data))
-            for row, crypto in enumerate(simulated_data):
-                self.crypto_table.setItem(row, 0, QTableWidgetItem(crypto["name"]))
-                self.crypto_table.setItem(row, 1, QTableWidgetItem(f"${crypto['longs']:,}"))
-                self.crypto_table.setItem(row, 2, QTableWidgetItem(f"${crypto['shorts']:,}"))
-                self.crypto_table.setItem(row, 3, QTableWidgetItem(crypto["range"]))
+            try:
+                for row, crypto in enumerate(simulated_data):
+                    self.crypto_table.setItem(row, 0, QTableWidgetItem(crypto["name"]))
+                    self.crypto_table.setItem(row, 1, QTableWidgetItem(f"${crypto['longs']:,}"))
+                    self.crypto_table.setItem(row, 2, QTableWidgetItem(f"${crypto['shorts']:,}"))
+                    self.crypto_table.setItem(row, 3, QTableWidgetItem(crypto["range"]))
+            except KeyError as e:
+                self.crypto_table.setRowCount(0)
+                error_label = QLabel(f"Błąd podczas pobierania danych: Missing key {str(e)}", self)
+                error_label.setStyleSheet("color: red; font-size: 14px;")
+                if not hasattr(self, 'error_label_added'):
+                    self.layout.addWidget(error_label)
+                    self.error_label_added = True
+            except Exception as e:
+                self.crypto_table.setRowCount(0)
+                error_label = QLabel(f"Błąd podczas pobierania danych: {str(e)}", self)
+                error_label.setStyleSheet("color: red; font-size: 14px;")
+                if not hasattr(self, 'error_label_added'):
+                    self.layout.addWidget(error_label)
+                    self.error_label_added = True
 
         except Exception as e:
             self.crypto_table.setRowCount(0)
