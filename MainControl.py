@@ -4,6 +4,7 @@ import schedule
 import time
 import json
 import os
+from some_ai_library import AIAnalyzer  # Placeholder for actual AI library
 
 # ...existing code...
 
@@ -68,7 +69,22 @@ def download_chart(symbol, timeframe='1D', file_format='png', retries=3, api_url
             else:
                 send_notification(f"Failed to download chart for {symbol} after {retries} attempts: {e}", method=notification_method)
 
-def download_top_10_charts():
+def analyze_chart(symbol, output_dir='.'):
+    analyzer = AIAnalyzer()
+    chart_path = os.path.join(output_dir, f"{symbol}_1D.png")
+    analysis_result = analyzer.analyze(chart_path)
+    logging.info(f"Analysis result for {symbol}: {analysis_result}")
+    send_notification(f"Analysis result for {symbol}: {analysis_result}")
+    save_analysis_result(symbol, analysis_result, output_dir)
+
+def save_analysis_result(symbol, analysis_result, output_dir='.'):
+    os.makedirs(output_dir, exist_ok=True)
+    result_path = os.path.join(output_dir, f"{symbol}_analysis.json")
+    with open(result_path, 'w') as file:
+        json.dump(analysis_result, file)
+    logging.info(f"Saved analysis result for {symbol} to {result_path}")
+
+def download_and_analyze_charts():
     log_download_start()
     config = load_config()
     validate_config(config)
@@ -80,13 +96,14 @@ def download_top_10_charts():
     notification_methods = config.get('notification_methods', ['log'] * len(top_10_tokens))
     for token, timeframe, file_format, api_url, output_dir, notification_method in zip(top_10_tokens, timeframes, file_formats, api_urls, output_dirs, notification_methods):
         download_chart(token, timeframe, file_format, api_url=api_url, output_dir=output_dir, notification_method=notification_method)
+        analyze_chart(token, output_dir=output_dir)
     log_download_end()
 
 def schedule_downloads():
     config = load_config()
     validate_config(config)
     interval_minutes = config.get('interval_minutes', 60)
-    schedule.every(interval_minutes).minutes.do(download_top_10_charts)
+    schedule.every(interval_minutes).minutes.do(download_and_analyze_charts)
     while True:
         schedule.run_pending()
         time.sleep(1)
@@ -95,6 +112,6 @@ def schedule_downloads():
 
 if __name__ == "__main__":
     # ...existing code...
-    download_top_10_charts()
+    download_and_analyze_charts()
     schedule_downloads()
     # ...existing code...
