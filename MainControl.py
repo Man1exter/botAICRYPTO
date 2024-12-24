@@ -7,6 +7,8 @@ import os
 import smtplib
 from email.mime.text import MIMEText
 from some_ai_library import AIAnalyzer  # Placeholder for actual AI library
+from pytz import timezone
+from datetime import datetime
 
 # ...existing code...
 
@@ -18,7 +20,7 @@ def load_config():
         return json.load(file)
 
 def validate_config(config):
-    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level']
+    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'time_zone']
     for key in required_keys:
         if key not in config:
             raise ValueError(f"Missing required config key: {key}")
@@ -137,9 +139,12 @@ def schedule_downloads():
     config = load_config()
     validate_config(config)
     interval_minutes = config.get('interval_minutes', 60)
+    tz = timezone(config.get('time_zone', 'UTC'))
     schedule.every(interval_minutes).minutes.do(download_and_analyze_charts)
     while True:
         schedule.run_pending()
+        now = datetime.now(tz)
+        logging.info(f"Current time: {now.strftime('%Y-%m-%d %H:%M:%S %Z%z')}")
         time.sleep(1)
 
 # ...existing code...

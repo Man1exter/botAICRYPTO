@@ -53,5 +53,6 @@
         "to_phone": "+1234567890",
         "api_key": "your_sms_api_key"
     },
-    "logging_level": "INFO"
+    "logging_level": "INFO",
+    "time_zone": "UTC"
 }
