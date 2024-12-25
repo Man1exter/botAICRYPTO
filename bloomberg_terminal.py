@@ -3,6 +3,8 @@ import json
 import logging
 import os
 from datetime import datetime
+import schedule
+import time
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -65,17 +67,27 @@ def send_notification(message):
     # Placeholder for notification logic (e.g., email, SMS, etc.)
     logging.info(f"Notification: {message}")
 
-# Main function
-def main():
-    api_key = "your_bloomberg_api_key"  # Replace with your Bloomberg API key
-    query = "Earth"
-    keywords = ["climate", "environment", "sustainability"]
+# Function to fetch, filter, display, save, and notify about news
+def fetch_and_process_news(api_key, query, keywords):
     news_data = fetch_bloomberg_news(api_key, query)
     filtered_news = filter_news_by_keywords(news_data, keywords)
     if filtered_news:
         send_notification(f"Found {len(filtered_news)} new articles about {query}")
     display_news({"articles": filtered_news})
     save_news_to_file({"articles": filtered_news}, query)
+
+# Main function
+def main():
+    api_key = "your_bloomberg_api_key"  # Replace with your Bloomberg API key
+    query = "Earth"
+    keywords = ["climate", "environment", "sustainability"]
+    
+    # Schedule regular news fetches
+    schedule.every(1).hour.do(fetch_and_process_news, api_key, query, keywords)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()

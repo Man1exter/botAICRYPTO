@@ -54,5 +54,6 @@
         "api_key": "your_sms_api_key"
     },
     "logging_level": "INFO",
+    "logging_format": "%(asctime)s - %(levelname)s - %(message)s",
     "time_zone": "UTC"
 }
