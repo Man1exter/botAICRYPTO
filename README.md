@@ -18,6 +18,7 @@ botAICRYPTO/
 ├── longshort.py
 ├── futures_test.py
 ├── binance_his.py
+├── bloomberg_terminal.py
 └── README.md
 ```
 
@@ -35,6 +36,8 @@ This is the main control script for the Trading Bot Dashboard. It includes funct
 - Log the start and end of the download process.
 - Analyze downloaded charts using an AI agent.
 - Save analysis results to a file.
+- Handle different logging levels and formats.
+- Handle different time zones for scheduling downloads.
 
 ### config.json
 
@@ -48,10 +51,15 @@ This configuration file contains customizable settings for the Trading Bot Dashb
 - `api_urls`: List of API URLs for each token.
 - `output_dirs`: List of output directories for each chart.
 - `notification_methods`: List of notification methods for each chart.
+- `email_settings`: Email settings for notifications.
+- `sms_settings`: SMS settings for notifications.
+- `logging_level`: Logging level for the application.
+- `logging_format`: Logging format for the application.
+- `time_zone`: Time zone for scheduling downloads.
 
 ### token_info_panel.py
 
-This script creates a simple GUI using Tkinter to display the current price and 24-hour volume of XRP. It fetches data from the CoinGecko API and updates the display.
+This script creates a simple GUI using Tkinter to display the current price and 24-hour volume of selected cryptocurrencies. It fetches data from the CoinGecko API, updates the display, and saves the data to a file in different formats (JSON, TXT).
 
 ### tempCodeRunnerFile.py
 
@@ -76,6 +84,10 @@ This script creates a PyQt application with a real-time candlestick chart and Fi
 ### binance_his.py
 
 This script creates a Streamlit dashboard for real-time trading data and AI forecasts. It fetches data from Binance, displays a TradingView chart, and includes tabs for risk analysis and historical data.
+
+### bloomberg_terminal.py
+
+This script fetches news from the Bloomberg API, filters articles based on keywords, displays the news, saves it to a file, and sends notifications for new articles. It also schedules regular news fetches.
 
 ### README.md
 

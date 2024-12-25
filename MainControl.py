@@ -12,15 +12,15 @@ from datetime import datetime
 
 # ...existing code...
 
-def setup_logging(level):
-    logging.basicConfig(level=level, format='%(asctime)s - %(levelname)s - %(message)s')
+def setup_logging(level, format):
+    logging.basicConfig(level=level, format=format)
 
 def load_config():
     with open('config.json', 'r') as file:
         return json.load(file)
 
 def validate_config(config):
-    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'time_zone']
+    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'logging_format', 'time_zone']
     for key in required_keys:
         if key not in config:
             raise ValueError(f"Missing required config key: {key}")
@@ -121,7 +121,7 @@ def download_and_analyze_charts():
     log_download_start()
     config = load_config()
     validate_config(config)
-    setup_logging(config.get('logging_level', 'INFO'))
+    setup_logging(config.get('logging_level', 'INFO'), config.get('logging_format', '%(asctime)s - %(levelname)s - %(message)s'))
     top_10_tokens = config.get('top_10_tokens', ['BTC', 'ETH', 'BNB', 'USDT', 'ADA', 'SOL', 'XRP', 'DOT', 'DOGE', 'USDC'])
     timeframes = config.get('timeframes', ['1D'] * len(top_10_tokens))
     file_formats = config.get('file_formats', ['png'] * len(top_10_tokens))
