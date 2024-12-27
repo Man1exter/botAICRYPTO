@@ -9,8 +9,10 @@ from email.mime.text import MIMEText
 from some_ai_library import AIAnalyzer  # Placeholder for actual AI library
 from pytz import timezone
 from datetime import datetime
+import random
 
 # ...existing code...
+# existing code
 
 def setup_logging(level, format):
     logging.basicConfig(level=level, format=format)
@@ -20,7 +22,7 @@ def load_config():
         return json.load(file)
 
 def validate_config(config):
-    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'logging_format', 'time_zone']
+    required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'logging_format', 'time_zone', 'retry_strategy']
     for key in required_keys:
         if key not in config:
             raise ValueError(f"Missing required config key: {key}")
@@ -83,7 +85,7 @@ def log_download_start():
 def log_download_end():
     logging.info("Completed download of top 10 cryptocurrency charts")
 
-def download_chart(symbol, timeframe='1D', file_format='png', retries=3, api_url='https://api.tradingview.com/chart', output_dir='.', notification_method='log', email_settings=None, sms_settings=None):
+def download_chart(symbol, timeframe='1D', file_format='png', retries=3, api_url='https://api.tradingview.com/chart', output_dir='.', notification_method='log', email_settings=None, sms_settings=None, retry_strategy='exponential'):
     url = f"{api_url}/{symbol}/{timeframe}"
     for attempt in range(retries):
         try:
@@ -98,7 +100,12 @@ def download_chart(symbol, timeframe='1D', file_format='png', retries=3, api_url
         except requests.exceptions.RequestException as e:
             logging.error(f"Attempt {attempt + 1} failed to download chart for {symbol}: {e}")
             if attempt < retries - 1:
-                time.sleep(2 ** attempt)  # Exponential backoff
+                if retry_strategy == 'exponential':
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                elif retry_strategy == 'fixed':
+                    time.sleep(5)  # Fixed delay
+                elif retry_strategy == 'random':
+                    time.sleep(random.uniform(1, 10))  # Random delay
             else:
                 send_notification(f"Failed to download chart for {symbol} after {retries} attempts: {e}", method=notification_method, email_settings=email_settings, sms_settings=sms_settings)
 
@@ -130,8 +137,9 @@ def download_and_analyze_charts():
     notification_methods = config.get('notification_methods', ['log'] * len(top_10_tokens))
     email_settings = config.get('email_settings', {})
     sms_settings = config.get('sms_settings', {})
+    retry_strategy = config.get('retry_strategy', 'exponential')
     for token, timeframe, file_format, api_url, output_dir, notification_method in zip(top_10_tokens, timeframes, file_formats, api_urls, output_dirs, notification_methods):
-        download_chart(token, timeframe, file_format, api_url=api_url, output_dir=output_dir, notification_method=notification_method, email_settings=email_settings, sms_settings=sms_settings)
+        download_chart(token, timeframe, file_format, api_url=api_url, output_dir=output_dir, notification_method=notification_method, email_settings=email_settings, sms_settings=sms_settings, retry_strategy=retry_strategy)
         analyze_chart(token, output_dir=output_dir, email_settings=email_settings, sms_settings=sms_settings)
     log_download_end()
 
