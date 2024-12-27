@@ -5,16 +5,16 @@
     "interval_minutes": 60,
     "retries": 3,
     "api_urls": [
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart",
-        "https://api.tradingview.com/chart"
+        "https://api.tradingview.com/chart/BTC",
+        "https://api.tradingview.com/chart/ETH",
+        "https://api.tradingview.com/chart/BNB",
+        "https://api.tradingview.com/chart/USDT",
+        "https://api.tradingview.com/chart/ADA",
+        "https://api.tradingview.com/chart/SOL",
+        "https://api.tradingview.com/chart/XRP",
+        "https://api.tradingview.com/chart/DOT",
+        "https://api.tradingview.com/chart/DOGE",
+        "https://api.tradingview.com/chart/USDC"
     ],
     "output_dirs": [
         "./charts/BTC",
@@ -55,5 +55,6 @@
     },
     "logging_level": "INFO",
     "logging_format": "%(asctime)s - %(levelname)s - %(message)s",
-    "time_zone": "UTC"
+    "time_zone": "UTC",
+    "retry_strategy": "exponential"
 }
