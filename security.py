@@ -39,6 +39,11 @@ def load_sensitive_data(filename):
     decrypted_data = decrypt_message(encrypted_data)
     return json.loads(decrypted_data)
 
+# Function to securely load configuration settings
+def load_secure_config(filename):
+    config = load_sensitive_data(filename)
+    return config
+
 # Example usage
 if __name__ == "__main__":
     # Generate and save a key (only need to do this once)
@@ -57,3 +62,7 @@ if __name__ == "__main__":
     # Load sensitive data from a file
     loaded_data = load_sensitive_data("sensitive_data.enc")
     print(loaded_data)
+
+    # Load configuration settings securely
+    config = load_secure_config("sensitive_data.enc")
+    print(config)

@@ -10,6 +10,7 @@ from some_ai_library import AIAnalyzer  # Placeholder for actual AI library
 from pytz import timezone
 from datetime import datetime
 import random
+from security import load_secure_config  # Import the secure config loader
 
 # ...existing code...
 # existing code
@@ -18,8 +19,7 @@ def setup_logging(level, format):
     logging.basicConfig(level=level, format=format)
 
 def load_config():
-    with open('config.json', 'r') as file:
-        return json.load(file)
+    return load_secure_config('secure_config.enc')  # Load the secure configuration
 
 def validate_config(config):
     required_keys = ['top_10_tokens', 'timeframes', 'file_formats', 'interval_minutes', 'retries', 'api_urls', 'output_dirs', 'notification_methods', 'email_settings', 'sms_settings', 'logging_level', 'logging_format', 'time_zone', 'retry_strategy']
