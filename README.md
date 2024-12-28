@@ -20,6 +20,7 @@ botAICRYPTO/
 ├── binance_his.py
 ├── bloomberg_terminal.py
 ├── security.py
+├── ultra_secure.py
 ├── securize.sh
 └── README.md
 ```
@@ -95,6 +96,10 @@ This script fetches news from the Bloomberg API, filters articles based on keywo
 
 This script provides functions for securely saving and loading sensitive data and configuration settings using encryption.
 
+### ultra_secure.py
+
+This script enhances security features by including multi-factor authentication (MFA) and secure environment checks.
+
 ### securize.sh
 
 This bash script generates an encryption key, encrypts the configuration file, and removes the plain configuration file for security.
@@ -119,6 +124,21 @@ bash securize.sh
 python MainControl.py
 ```
 
+## Ultra Secure Usage
+
+1. Ensure you have Python and the required libraries installed.
+2. Set the `SECURE_ENV` environment variable to `true`.
+
+```sh
+export SECURE_ENV=true
+```
+
+3. Run the `ultra_secure.py` script to perform multi-factor authentication and secure the configuration file.
+
+```sh
+python ultra_secure.py
+```
+
 ## Requirements
 
 - Python 3.x
@@ -137,6 +157,7 @@ python MainControl.py
 - `PySide6` library
 - `pyqtgraph` library
 - `cryptography` library
+- `pyotp` library
 
 ## License
 
