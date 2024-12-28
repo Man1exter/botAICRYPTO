@@ -31,3 +31,22 @@ echo "Configuration file encrypted and saved to secure_config.enc"
 # Remove the plain configuration file
 rm config.json
 echo "Plain configuration file config.json removed for security."
+
+# Function to decrypt the configuration file
+decrypt_config() {
+    echo "Decrypting configuration file..."
+    python3 -c "
+import json
+from security import load_secure_config, save_sensitive_data
+
+config = load_secure_config('secure_config.enc')
+save_sensitive_data(config, 'config.json')
+"
+    echo "Configuration file decrypted and saved to config.json"
+}
+
+# Check if the user wants to decrypt the configuration file
+read -p "Do you want to decrypt the configuration file? (y/n): " choice
+if [ "$choice" = "y" ]; then
+    decrypt_config
+fi
