@@ -5,11 +5,11 @@ import tensorflow as tf
 from binance.client import Client
 import ta
 from sklearn.preprocessing import MinMaxScaler
+from security import load_secure_config  # Import the secure config loader
 
 # Inicjalizacja klienta Binance API
-api_key = 'your_api_key'  # Podaj swój klucz API
-api_secret = 'your_api_secret'  # Podaj swój sekret API
-client = Client(api_key, api_secret)
+config = load_secure_config('secure_config.enc')
+client = Client(config['api_key'], config['api_secret'])
 
 # Pobieranie danych OHLCV z Binance
 def get_binance_data(symbol, interval, start_str):

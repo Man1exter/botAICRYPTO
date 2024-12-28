@@ -44,6 +44,10 @@ def load_secure_config(filename):
     config = load_sensitive_data(filename)
     return config
 
+# Function to securely save configuration settings
+def save_secure_config(config, filename):
+    save_sensitive_data(config, filename)
+
 # Example usage
 if __name__ == "__main__":
     # Generate and save a key (only need to do this once)
@@ -66,3 +70,6 @@ if __name__ == "__main__":
     # Load configuration settings securely
     config = load_secure_config("sensitive_data.enc")
     print(config)
+
+    # Save configuration settings securely
+    save_secure_config(config, "secure_config.enc")

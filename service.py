@@ -1,11 +1,13 @@
 import ccxt
 import time
+from security import load_secure_config  # Import the secure config loader
 
 class CryptoBot:
-    def __init__(self, api_key, secret, exchange_id='binance'):
+    def __init__(self, config_file='secure_config.enc', exchange_id='binance'):
+        config = load_secure_config(config_file)
         self.exchange = getattr(ccxt, exchange_id)({
-            'apiKey': api_key,
-            'secret': secret,
+            'apiKey': config['api_key'],
+            'secret': config['api_secret'],
         })
         self.exchange.load_markets()
 
@@ -48,9 +50,7 @@ class CryptoBot:
             time.sleep(60)  # Add a delay to avoid excessive API calls
 
 if __name__ == "__main__":
-    api_key = 'your_api_key'
-    secret = 'your_secret'
-    bot = CryptoBot(api_key, secret)
+    bot = CryptoBot()
     symbol = 'BTC/USDT'
     amount = 0.001
     price = 30000  # Example price to buy
