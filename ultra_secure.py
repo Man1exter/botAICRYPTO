@@ -1,14 +1,19 @@
 import os
 import json
 import pyotp
+import logging
 from cryptography.fernet import Fernet
 from getpass import getpass
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Function to generate a key and save it into a file
 def generate_key():
     key = Fernet.generate_key()
     with open("secret.key", "wb") as key_file:
         key_file.write(key)
+    logging.info("Encryption key generated and saved to secret.key")
 
 # Function to load the key from the current directory named `secret.key`
 def load_key():
@@ -33,6 +38,7 @@ def save_sensitive_data(data, filename):
     encrypted_data = encrypt_message(json.dumps(data))
     with open(filename, "wb") as file:
         file.write(encrypted_data)
+    logging.info(f"Sensitive data saved to {filename}")
 
 # Function to securely load sensitive data from a file
 def load_sensitive_data(filename):
@@ -55,7 +61,7 @@ def generate_totp_secret():
     secret = pyotp.random_base32()
     with open("totp_secret.key", "w") as file:
         file.write(secret)
-    print(f"TOTP secret generated and saved to totp_secret.key. Use this secret to set up your authenticator app: {secret}")
+    logging.info(f"TOTP secret generated and saved to totp_secret.key. Use this secret to set up your authenticator app: {secret}")
 
 # Function to load the TOTP secret from a file
 def load_totp_secret():
@@ -71,15 +77,15 @@ def verify_totp_code(code):
 def perform_mfa():
     code = getpass("Enter the TOTP code from your authenticator app: ")
     if verify_totp_code(code):
-        print("MFA successful.")
+        logging.info("MFA successful.")
     else:
-        print("Invalid TOTP code. MFA failed.")
+        logging.error("Invalid TOTP code. MFA failed.")
         exit(1)
 
 # Function to check if running in a secure environment
 def check_secure_environment():
     if os.getenv("SECURE_ENV") != "true":
-        print("Warning: Not running in a secure environment. Set the SECURE_ENV environment variable to 'true'.")
+        logging.error("Not running in a secure environment. Set the SECURE_ENV environment variable to 'true'.")
         exit(1)
 
 # Example usage
@@ -109,11 +115,11 @@ if __name__ == "__main__":
 
     # Load sensitive data from a file
     loaded_data = load_sensitive_data("sensitive_data.enc")
-    print(loaded_data)
+    logging.info(f"Loaded sensitive data: {loaded_data}")
 
     # Load configuration settings securely
     config = load_secure_config("sensitive_data.enc")
-    print(config)
+    logging.info(f"Loaded configuration: {config}")
 
     # Save configuration settings securely
     save_secure_config(config, "secure_config.enc")
