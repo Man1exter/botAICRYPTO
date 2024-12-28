@@ -30,14 +30,14 @@
     ],
     "notification_methods": [
         "log",
+        "email",
+        "sms",
         "log",
+        "email",
+        "sms",
         "log",
-        "log",
-        "log",
-        "log",
-        "log",
-        "log",
-        "log",
+        "email",
+        "sms",
         "log"
     ],
     "email_settings": {
