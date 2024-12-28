@@ -19,6 +19,8 @@ botAICRYPTO/
 ├── futures_test.py
 ├── binance_his.py
 ├── bloomberg_terminal.py
+├── security.py
+├── securize.sh
 └── README.md
 ```
 
@@ -89,6 +91,14 @@ This script creates a Streamlit dashboard for real-time trading data and AI fore
 
 This script fetches news from the Bloomberg API, filters articles based on keywords, displays the news, saves it to a file, and sends notifications for new articles. It also schedules regular news fetches.
 
+### security.py
+
+This script provides functions for securely saving and loading sensitive data and configuration settings using encryption.
+
+### securize.sh
+
+This bash script generates an encryption key, encrypts the configuration file, and removes the plain configuration file for security.
+
 ### README.md
 
 This file provides an overview of the Trading Bot Dashboard, its directory structure, and descriptions of the main files.
@@ -97,7 +107,13 @@ This file provides an overview of the Trading Bot Dashboard, its directory struc
 
 1. Ensure you have Python and the required libraries installed.
 2. Update the `config.json` file with your desired settings.
-3. Run the `MainControl.py` script to start downloading charts and scheduling future downloads.
+3. Run the `securize.sh` script to encrypt the configuration file.
+
+```sh
+bash securize.sh
+```
+
+4. Run the `MainControl.py` script to start downloading charts and scheduling future downloads.
 
 ```sh
 python MainControl.py
@@ -120,6 +136,7 @@ python MainControl.py
 - `ta` library
 - `PySide6` library
 - `pyqtgraph` library
+- `cryptography` library
 
 ## License
 
