@@ -66,6 +66,26 @@ def check_secure_environment():
         logging.error("Not running in a secure environment. Set the SECURE_ENV environment variable to 'true'.")
         exit(1)
 
+# Function to log access attempts
+def log_access_attempt(username, success):
+    if success:
+        logging.info(f"Access granted for user: {username}")
+    else:
+        logging.warning(f"Access denied for user: {username}")
+
+# Function to enforce access control
+def enforce_access_control():
+    username = input("Enter username: ")
+    password = getpass("Enter password: ")
+    credentials = load_user_credentials()
+    if username == credentials["username"] and password == decrypt_message(credentials["password"]):
+        log_access_attempt(username, True)
+        logging.info("Access granted")
+    else:
+        log_access_attempt(username, False)
+        logging.error("Access denied")
+        exit(1)
+
 # Example usage
 if __name__ == "__main__":
     # Check if running in a secure environment
@@ -81,5 +101,5 @@ if __name__ == "__main__":
         password = getpass("Set up a password: ")
         save_user_credentials(username, password)
 
-    # Authenticate user
-    authenticate_user()
+    # Enforce access control
+    enforce_access_control()
