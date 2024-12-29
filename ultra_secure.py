@@ -88,10 +88,25 @@ def check_secure_environment():
         logging.error("Not running in a secure environment. Set the SECURE_ENV environment variable to 'true'.")
         exit(1)
 
+# Function to validate environment variables
+def validate_environment_variables(required_vars):
+    missing_vars = [var for var in required_vars if os.getenv(var) is None]
+    if missing_vars:
+        logging.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+        exit(1)
+
+# Function to log sensitive data access
+def log_sensitive_data_access(action, filename):
+    logging.info(f"{action} sensitive data in {filename}")
+
 # Example usage
 if __name__ == "__main__":
     # Check if running in a secure environment
     check_secure_environment()
+
+    # Validate required environment variables
+    required_vars = ["SECURE_ENV", "API_KEY", "API_SECRET"]
+    validate_environment_variables(required_vars)
 
     # Perform multi-factor authentication
     perform_mfa()
@@ -106,20 +121,24 @@ if __name__ == "__main__":
 
     # Example sensitive data
     sensitive_data = {
-        "api_key": "your_api_key",
-        "api_secret": "your_api_secret"
+        "api_key": os.getenv("API_KEY"),
+        "api_secret": os.getenv("API_SECRET")
     }
 
     # Save sensitive data to a file
     save_sensitive_data(sensitive_data, "sensitive_data.enc")
+    log_sensitive_data_access("Saved", "sensitive_data.enc")
 
     # Load sensitive data from a file
     loaded_data = load_sensitive_data("sensitive_data.enc")
     logging.info(f"Loaded sensitive data: {loaded_data}")
+    log_sensitive_data_access("Loaded", "sensitive_data.enc")
 
     # Load configuration settings securely
     config = load_secure_config("sensitive_data.enc")
     logging.info(f"Loaded configuration: {config}")
+    log_sensitive_data_access("Loaded", "secure_config.enc")
 
     # Save configuration settings securely
     save_secure_config(config, "secure_config.enc")
+    log_sensitive_data_access("Saved", "secure_config.enc")
