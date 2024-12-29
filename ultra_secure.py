@@ -99,6 +99,27 @@ def validate_environment_variables(required_vars):
 def log_sensitive_data_access(action, filename):
     logging.info(f"{action} sensitive data in {filename}")
 
+# Function to securely delete a file
+def secure_delete(filename):
+    if os.path.exists(filename):
+        os.remove(filename)
+        logging.info(f"Securely deleted {filename}")
+    else:
+        logging.warning(f"File {filename} not found for deletion")
+
+# Function to securely update configuration settings
+def update_secure_config(filename, new_config):
+    config = load_secure_config(filename)
+    config.update(new_config)
+    save_secure_config(config, filename)
+    logging.info(f"Updated configuration in {filename}")
+
+# Function to backup configuration settings
+def backup_config(filename, backup_filename):
+    config = load_secure_config(filename)
+    save_secure_config(config, backup_filename)
+    logging.info(f"Configuration backed up to {backup_filename}")
+
 # Example usage
 if __name__ == "__main__":
     # Check if running in a secure environment
@@ -142,3 +163,17 @@ if __name__ == "__main__":
     # Save configuration settings securely
     save_secure_config(config, "secure_config.enc")
     log_sensitive_data_access("Saved", "secure_config.enc")
+
+    # Securely delete the sensitive data file
+    secure_delete("sensitive_data.enc")
+
+    # Example of updating configuration settings securely
+    new_config = {
+        "new_setting": "new_value"
+    }
+    update_secure_config("secure_config.enc", new_config)
+    log_sensitive_data_access("Updated", "secure_config.enc")
+
+    # Backup configuration settings
+    backup_config("secure_config.enc", "secure_config_backup.enc")
+    log_sensitive_data_access("Backed up", "secure_config_backup.enc")
