@@ -1,48 +1,83 @@
 #!/bin/bash
 
+# Function to log messages
+log_message() {
+    local message=$1
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message"
+}
+
 # Check if the secret key file exists
 if [ ! -f "secret.key" ]; then
-    echo "Generating encryption key..."
+    log_message "Generating encryption key..."
     python3 -c "from cryptography.fernet import Fernet; key = Fernet.generate_key(); open('secret.key', 'wb').write(key)"
-    echo "Encryption key generated and saved to secret.key"
+    if [ $? -eq 0 ]; then
+        log_message "Encryption key generated and saved to secret.key"
+    else
+        log_message "Error generating encryption key"
+        exit 1
+    fi
 else
-    echo "Encryption key already exists."
+    log_message "Encryption key already exists."
 fi
 
 # Check if the configuration file exists
 if [ ! -f "config.json" ]; then
-    echo "Configuration file config.json not found!"
+    log_message "Configuration file config.json not found!"
     exit 1
 fi
 
 # Encrypt the configuration file
-echo "Encrypting configuration file..."
+log_message "Encrypting configuration file..."
 python3 -c "
 import json
 from security import save_secure_config
 
-with open('config.json', 'r') as file:
-    config = json.load(file)
-
-save_secure_config(config, 'secure_config.enc')
+try:
+    with open('config.json', 'r') as file:
+        config = json.load(file)
+    save_secure_config(config, 'secure_config.enc')
+    print('Configuration file encrypted and saved to secure_config.enc')
+except Exception as e:
+    print(f'Error encrypting configuration file: {e}')
+    exit(1)
 "
-echo "Configuration file encrypted and saved to secure_config.enc"
+if [ $? -eq 0 ]; then
+    log_message "Configuration file encrypted and saved to secure_config.enc"
+else
+    log_message "Error encrypting configuration file"
+    exit 1
+fi
 
 # Remove the plain configuration file
 rm config.json
-echo "Plain configuration file config.json removed for security."
+if [ $? -eq 0 ]; then
+    log_message "Plain configuration file config.json removed for security."
+else
+    log_message "Error removing plain configuration file"
+    exit 1
+fi
 
 # Function to decrypt the configuration file
 decrypt_config() {
-    echo "Decrypting configuration file..."
+    log_message "Decrypting configuration file..."
     python3 -c "
 import json
 from security import load_secure_config, save_sensitive_data
 
-config = load_secure_config('secure_config.enc')
-save_sensitive_data(config, 'config.json')
+try:
+    config = load_secure_config('secure_config.enc')
+    save_sensitive_data(config, 'config.json')
+    print('Configuration file decrypted and saved to config.json')
+except Exception as e:
+    print(f'Error decrypting configuration file: {e}')
+    exit(1)
 "
-    echo "Configuration file decrypted and saved to config.json"
+    if [ $? -eq 0 ]; then
+        log_message "Configuration file decrypted and saved to config.json"
+    else
+        log_message "Error decrypting configuration file"
+        exit 1
+    fi
 }
 
 # Check if the user wants to decrypt the configuration file
