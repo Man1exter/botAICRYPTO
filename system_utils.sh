@@ -116,6 +116,33 @@ restore_file() {
     fi
 }
 
+# Function to monitor system resources
+monitor_system() {
+    echo "Monitoring system resources..."
+    echo "CPU Usage:"
+    top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1"%"}'
+    echo "Memory Usage:"
+    free -h
+    echo "Disk Usage:"
+    df -h
+}
+
+# Function to add a new user
+add_user() {
+    local username=$1
+    local password=$2
+    sudo useradd -m "$username"
+    echo "$username:$password" | sudo chpasswd
+    echo "User $username added successfully."
+}
+
+# Function to delete a user
+delete_user() {
+    local username=$1
+    sudo userdel -r "$username"
+    echo "User $username deleted successfully."
+}
+
 # Example usage
 if [ "$1" == "check_secure_environment" ]; then
     check_secure_environment
@@ -131,6 +158,12 @@ elif [ "$1" == "backup_file" ]; then
     backup_file "$2"
 elif [ "$1" == "restore_file" ]; then
     restore_file "$2"
+elif [ "$1" == "monitor_system" ]; then
+    monitor_system
+elif [ "$1" == "add_user" ]; then
+    add_user "$2" "$3"
+elif [ "$1" == "delete_user" ]; then
+    delete_user "$2"
 else
-    echo "Usage: $0 {check_secure_environment|generate_key|encrypt_file|decrypt_file|secure_delete|backup_file|restore_file} [filename]"
+    echo "Usage: $0 {check_secure_environment|generate_key|encrypt_file|decrypt_file|secure_delete|backup_file|restore_file|monitor_system|add_user|delete_user} [filename|username] [password]"
 fi
