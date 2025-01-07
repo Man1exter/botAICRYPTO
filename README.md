@@ -22,6 +22,7 @@ botAICRYPTO/
 ├── security.py
 ├── ultra_secure.py
 ├── securize.sh
+├── PowerOfPC.cs
 └── README.md
 ```
 
@@ -104,6 +105,10 @@ This script enhances security features by including multi-factor authentication 
 
 This bash script generates an encryption key, encrypts the configuration file, and removes the plain configuration file for security.
 
+### PowerOfPC.cs
+
+This C# script analyzes the computational power of the system, including CPU usage, available memory, total memory, disk usage, GPU usage, and system uptime.
+
 ### README.md
 
 This file provides an overview of the Trading Bot Dashboard, its directory structure, and descriptions of the main files.
@@ -139,6 +144,21 @@ export SECURE_ENV=true
 python ultra_secure.py
 ```
 
+## PowerOfPC Usage
+
+1. Ensure you have .NET installed.
+2. Compile the `PowerOfPC.cs` file.
+
+```sh
+csc PowerOfPC.cs
+```
+
+3. Run the compiled executable to analyze the computational power of the system.
+
+```sh
+./PowerOfPC.exe
+```
+
 ## Requirements
 
 - Python 3.x
@@ -158,6 +178,7 @@ python ultra_secure.py
 - `pyqtgraph` library
 - `cryptography` library
 - `pyotp` library
+- .NET SDK
 
 ## License
 
