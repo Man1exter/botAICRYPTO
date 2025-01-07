@@ -55,9 +55,48 @@ def create_tradingview_chart(symbol, timeframe='1D', output_dir='.'):
         save_chart_data(symbol, data, output_dir)
         levels = calculate_fibonacci_levels(data)
         logging.info(f"Fibonacci levels for {symbol}: {levels}")
+        display_fibonacci_levels(symbol, levels, output_dir)
         logging.info(f"TradingView chart for {symbol} created successfully")
     else:
         logging.error(f"Failed to create TradingView chart for {symbol}")
+
+# Function to display Fibonacci levels on the chart
+def display_fibonacci_levels(symbol, levels, output_dir='.'):
+    chart_path = os.path.join(output_dir, f"{symbol}_chart.json")
+    with open(chart_path, 'r') as file:
+        chart_data = json.load(file)
+    
+    # Add Fibonacci levels to the chart data
+    chart_data['fibonacci_levels'] = levels
+    
+    # Save the updated chart data
+    with open(chart_path, 'w') as file:
+        json.dump(chart_data, file)
+    logging.info(f"Fibonacci levels for {symbol} added to the chart")
+
+# Function to plot the chart with Fibonacci levels
+def plot_chart_with_fibonacci(symbol, output_dir='.'):
+    import matplotlib.pyplot as plt
+
+    chart_path = os.path.join(output_dir, f"{symbol}_chart.json")
+    with open(chart_path, 'r') as file:
+        chart_data = json.load(file)
+
+    prices = [item['close'] for item in chart_data]
+    dates = [datetime.fromtimestamp(item['time'] / 1000) for item in chart_data]
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(dates, prices, label='Price')
+
+    for level, value in chart_data['fibonacci_levels'].items():
+        plt.axhline(y=value, color='r', linestyle='--', label=f'Fibonacci {level}')
+
+    plt.title(f'{symbol} Price Chart with Fibonacci Levels')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 # Example usage
 if __name__ == "__main__":
@@ -67,3 +106,4 @@ if __name__ == "__main__":
 
     for symbol, timeframe, output_dir in zip(symbols, timeframes, output_dirs):
         create_tradingview_chart(symbol, timeframe, output_dir)
+        plot_chart_with_fibonacci(symbol, output_dir)
