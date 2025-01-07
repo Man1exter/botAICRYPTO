@@ -102,7 +102,7 @@ namespace BotAICrypto
         {
             try
             {
-                var gpuCounter = new PerformanceCounter("GPU Engine", "Utilization Percentage", "engtype_3D");
+                var gpuCounter = new PerformanceCounter("GPU Engine", "Utilization Percentage", "engtype_3D_0");
                 return Math.Round(gpuCounter.NextValue(), 2);
             }
             catch (Exception)
